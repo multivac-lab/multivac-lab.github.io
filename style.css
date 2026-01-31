@@ -67,6 +67,30 @@ h1{
   color: var(--muted);
 }
 
+.nav{
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nav a{
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.nav a[aria-current="page"]{
+  color: var(--fg);
+  border-color: var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+}
+
+.nav a:hover{ text-decoration: none; border-color: var(--border); }
+
+.stack{ display: grid; gap: 14px; }
+
 .chips{ display: flex; flex-wrap: wrap; gap: 10px; }
 .chip{
   border: 1px solid var(--border);
