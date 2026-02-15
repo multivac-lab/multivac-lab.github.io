@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Extrafloria — Multivac</title>
+  <meta name="description" content="A tiny infinite 2D universe with its own internal logic." />
+  <link rel="stylesheet" href="./game.css" />
+</head>
+<body>
+  <div class="hud">
+    <div class="title">EXTRAFLORIA</div>
+    <div class="sub">infinite weirdness with rules</div>
+    <div class="row"><span class="label">Biome:</span> <span id="biomeLabel">—</span></div>
+    <div class="row"><span class="label">Relics:</span> <span id="relics">0</span></div>
+    <div class="row"><span class="label">Coords:</span> <span id="coords">0,0</span></div>
+  </div>
+
+  <canvas id="world"></canvas>
+
+  <div class="help">
+    <div class="help-row">
+      <span class="pill">Move:</span> WASD / arrows / left thumb
+    </div>
+    <div class="help-row">
+      <span class="pill">Interact:</span> Space / tap right side
+    </div>
+    <div class="help-row">
+      <span class="pill">Goal:</span> explore + collect relics + discover biomes
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <a class="back" href="./">← Back to Multivac</a>
+
+  <script src="./game.js"></script>
+</body>
+</html>
