@@ -108,7 +108,7 @@
 
   function relicAt(tx, ty){
     const h = hash(tx * 3.13, ty * 1.91);
-    if (h > 0.987) {
+    if (h > 0.965) {
       const idx = Math.floor(hash(tx * 7.77, ty * 9.99) * relicTypes.length);
       return relicTypes[idx];
     }
@@ -117,7 +117,7 @@
 
   function creatureAt(tx, ty){
     const h = hash(tx * 5.11, ty * 2.71);
-    if (h > 0.985) {
+    if (h > 0.97) {
       const idx = Math.floor(hash(tx * 9.17, ty * 4.33) * creatureTypes.length);
       return creatureTypes[idx];
     }
@@ -169,6 +169,12 @@
       ui.biome.textContent = biomeNames[b];
       ui.law.textContent = biomeLaws[b];
       showToast(`Law: ${biomeLaws[b]}`);
+    }
+
+    // Auto-sense nearby discoveries occasionally
+    if ((tx + ty) % 7 === 0) {
+      const creature = creatureAt(tx, ty);
+      if (creature) state.discovered.add(creature.name);
     }
 
     if (state.interactQueued && performance.now() - state.lastInteract > 200) {
@@ -243,6 +249,12 @@
           ctx.lineTo(px + 6, py + tile / 2);
           ctx.closePath();
           ctx.fill();
+        }
+
+        // subtle hint if this tile has something
+        if (relic || creature) {
+          ctx.strokeStyle = 'rgba(255,255,255,.12)';
+          ctx.strokeRect(px + 2, py + 2, tile - 4, tile - 4);
         }
       }
     }
