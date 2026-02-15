@@ -4,7 +4,9 @@
 
   const ui = {
     biome: document.getElementById('biomeLabel'),
+    law: document.getElementById('lawLabel'),
     relics: document.getElementById('relics'),
+    discoveries: document.getElementById('discoveries'),
     coords: document.getElementById('coords'),
     toast: document.getElementById('toast')
   };
@@ -14,15 +16,24 @@
     py: 0,
     vx: 0,
     vy: 0,
-    speed: 2.1,
+    baseSpeed: 2.1,
     relics: 0,
     seed: 1337,
     interactQueued: false,
-    lastInteract: 0
+    lastInteract: 0,
+    discovered: new Set(),
+    lastBiome: -1
   };
 
   const tile = 32;
   const biomeNames = ['Iridescent Shoals', 'Thornfields', 'Clockwork Dunes', 'Lumen Forest'];
+  const biomeLaws = [
+    'Gravity softens near water-like light.',
+    'Thorns bend trajectories slightly inward.',
+    'Time ticks in stutters on metal sands.',
+    'Light diffuses; sound carries farther.'
+  ];
+  const biomeSpeed = [1.05, 0.92, 1.15, 0.98];
   const biomePalette = [
     ['#16324c', '#1d476a', '#2d6a89', '#52a3c0'],
     ['#1a1430', '#2e1a44', '#4f245c', '#7a3a6d'],
@@ -35,6 +46,13 @@
     { name: 'Temporal Prism', color: '#b9a7ff' },
     { name: 'Echo Lichen', color: '#7ce6d8' },
     { name: 'Quartz Moth', color: '#ffd27b' }
+  ];
+
+  const creatureTypes = [
+    { name: 'Velvet Tortoise', color: '#ff8fb1' },
+    { name: 'Glass Antenna', color: '#7cc8ff' },
+    { name: 'Ink Orchard', color: '#a98bff' },
+    { name: 'Ribbon Wisp', color: '#ffd27b' }
   ];
 
   const keys = new Set();
@@ -97,6 +115,15 @@
     return null;
   }
 
+  function creatureAt(tx, ty){
+    const h = hash(tx * 5.11, ty * 2.71);
+    if (h > 0.985) {
+      const idx = Math.floor(hash(tx * 9.17, ty * 4.33) * creatureTypes.length);
+      return creatureTypes[idx];
+    }
+    return null;
+  }
+
   function showToast(text){
     ui.toast.textContent = text;
     ui.toast.classList.add('show');
@@ -122,8 +149,10 @@
     }
 
     const mag = Math.hypot(dx, dy) || 1;
-    state.vx = (dx / mag) * state.speed;
-    state.vy = (dy / mag) * state.speed;
+    const b = biomeAt(Math.floor(state.px / tile), Math.floor(state.py / tile));
+    const speed = state.baseSpeed * biomeSpeed[b];
+    state.vx = (dx / mag) * speed;
+    state.vy = (dy / mag) * speed;
   }
 
   function update(){
@@ -131,25 +160,39 @@
     state.px += state.vx;
     state.py += state.vy;
 
+    const tx = Math.round(state.px / tile);
+    const ty = Math.round(state.py / tile);
+    const b = biomeAt(Math.floor(state.px / tile), Math.floor(state.py / tile));
+
+    if (b !== state.lastBiome) {
+      state.lastBiome = b;
+      ui.biome.textContent = biomeNames[b];
+      ui.law.textContent = biomeLaws[b];
+      showToast(`Law: ${biomeLaws[b]}`);
+    }
+
     if (state.interactQueued && performance.now() - state.lastInteract > 200) {
       state.lastInteract = performance.now();
       state.interactQueued = false;
 
-      const tx = Math.round(state.px / tile);
-      const ty = Math.round(state.py / tile);
-      const relic = relicAt(tx, ty);
-      if (relic) {
-        state.relics += 1;
-        showToast(`Collected ${relic.name}`);
+      const creature = creatureAt(tx, ty);
+      if (creature) {
+        state.discovered.add(creature.name);
+        showToast(`Discovered ${creature.name}`);
       } else {
-        showToast('Nothing here…');
+        const relic = relicAt(tx, ty);
+        if (relic) {
+          state.relics += 1;
+          showToast(`Collected ${relic.name}`);
+        } else {
+          showToast('Nothing here…');
+        }
       }
     }
 
     ui.relics.textContent = String(state.relics);
+    ui.discoveries.textContent = String(state.discovered.size);
     ui.coords.textContent = `${Math.round(state.px / tile)},${Math.round(state.py / tile)}`;
-    const b = biomeAt(Math.floor(state.px / tile), Math.floor(state.py / tile));
-    ui.biome.textContent = biomeNames[b];
   }
 
   function draw(){
@@ -187,6 +230,18 @@
           ctx.fillStyle = relic.color;
           ctx.beginPath();
           ctx.arc(px + tile / 2, py + tile / 2, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const creature = creatureAt(tx, ty);
+        if (creature) {
+          ctx.fillStyle = creature.color;
+          ctx.beginPath();
+          ctx.moveTo(px + tile / 2, py + 6);
+          ctx.lineTo(px + tile - 6, py + tile / 2);
+          ctx.lineTo(px + tile / 2, py + tile - 6);
+          ctx.lineTo(px + 6, py + tile / 2);
+          ctx.closePath();
           ctx.fill();
         }
       }
